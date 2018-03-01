@@ -9,10 +9,28 @@ import java.util.List;
 
 public class TimeStats {
     private List<Long> timeList;
+    private int leftOutlierBoundary;
+    private int rightOutlierBoundary;
 
     public TimeStats(List<Long> timeList) {
         this.timeList = timeList;
         Collections.sort(this.timeList);
+        outliersDetection();
+    }
+
+    public void outliersDetection() {
+        leftOutlierBoundary = rightOutlierBoundary = 0;
+        long q1 = quartile(25);
+        long q3 = quartile(75);
+        long iqr = Math.round(1.5 * (q3 - q1));
+        int i = 0;
+        while (timeList.get(i) < q1 - iqr) {
+            leftOutlierBoundary++; i++;
+        }
+        i = timeList.size() - 1;
+        while (timeList.get(i) > q3 + iqr) {
+            rightOutlierBoundary++; i--;
+        }
     }
 
     public long mean() {
@@ -36,6 +54,10 @@ public class TimeStats {
         if(timeList.size() % 2 == 0)
             res = Math.round((res + timeList.get(midListInd - 1)) / 2);
         return res;
+    }
+
+    public long quartile(double quartilePercent) {
+        return timeList.get((int)Math.round(timeList.size() * quartilePercent / 100));
     }
 
 }
